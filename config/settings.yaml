@@ -1,27 +1,13 @@
-# config/settings.yaml
-
-# 1. Network & Connection settings
+# กำหนดโหมดการเชื่อมต่อกับหุ่นยนต์ RoboMaster
 connection:
-  mode: "ap"                   # "ap" (Wi-Fi direct) หรือ "rndis" (USB Mode)
-  robot_ip: "192.168.2.1"      
-  timeout: 10                  
+  mode: "ap"     # โหมดการเชื่อมต่อ: "ap" หรือ "sta"
 
-# 2. Robot Physical Parameters
-robot_params:
-  chassis:
-    default_speed_x: 0.5       # ความเร็วเดินหน้า-ถอยหลังเริ่มต้น (m/s)
-    default_speed_y: 0.5       # ความเร็วสไลด์ซ้าย-ขวาเริ่มต้น (m/s)
-    default_speed_z: 30        # ความเร็วในการหมุนตัวเริ่มต้น (deg/s)
-    max_speed_x: 1.5           # ขีดจำกัดความเร็วเคลื่อนที่สูงสุดเพื่อความปลอดภัย
-    max_speed_z: 60            # ขีดจำกัดความเร็วในการหมุนตัวสูงสุด (deg/s)
-  gimbal:
-    default_pitch_speed: 50    
-    default_yaw_speed: 100     
-    max_pitch_angle: 30        
-    min_pitch_angle: -20       
+# ตั้งค่าความเร็วและระยะทางในการเคลื่อนที่ของหุ่นยนต์
+robot_settings:
+  tile_size: 0.6    # ระยะทางต่อ 1 ช่องกระเบื้อง (เมตร)
+  speed: 0.7        # ความเร็วตอนเดินหน้าตรง
+  turn_speed: 45    # ความเร็วตอนหมุนตัว/เลี้ยวขวา (องศาต่อวินาที)
 
-# 3. Directories & Paths
+# โครงสร้างพาธสำหรับอ้างอิงไฟล์ข้อมูล
 paths:
-  raw_data_dir: "data/raw"             
-  processed_data_dir: "data/processed" 
-  output_plots_dir: "analysis/plots"
+  raw_data_dir: "data/raw"
