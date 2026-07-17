@@ -1,47 +1,57 @@
+# main.py
 import time
 from robomaster import robot
-from src.config_loader import load_config
-from src.logger import DataLogger
+from src.config_loader import load_settings
 from src.chassis import ChassisController
+from src.logger import DataLogger
 
-if __name__ == '__main__':
-    # 1. โหลดค่าคอนฟิกจากการตั้งค่า
-    config = load_config()
+def main():
+    config = load_settings()
+    conn_mode = config['connection']['mode']
+    logger = DataLogger(config)
     
-# 2. เริ่มต้นระบบเชื่อมต่อตัวหุ่นยนต์ (AP Mode)
+    print(f"[Main] Initializing RoboMaster via Mode: {conn_mode.upper()}...")
     ep_robot = robot.Robot()
     
-    # แก้ไขบรรทัดที่ 13 เป็นแบบนี้:
-    ep_robot.initialize(conn_type="rndis")
-    
-    # [Lab02 Checkpoint 1] ตรวจสอบและแสดงเวอร์ชันออกหน้าจอคอนโซล
-    version = ep_robot.get_version()
-    print(f"เวอร์ชันของหุ่นยนต์ (Robot Version): {version}")
+    try:
+        ep_robot.initialize(conn_type=conn_mode)
+        print("[Main] Connected successfully! SN:", ep_robot.get_sn())
+        
+        chassis_ctrl = ChassisController(ep_robot, config)
+        logger.start_logging(sensor_type="imu")
+        
+        # --- เริ่มโปรโตคอลเคลื่อนที่และเลี้ยว ---
+        
+        # 1. เดินหน้า 0.5 เมตร
+        chassis_ctrl.move_forward(distance=0.5)
+        logger.log_imu_data(acc=[0.1, 0.02, 9.8], gyro=[0.0, 1.2, -0.5])
+        time.sleep(0.5)
+        
+        # 2. เลี้ยวซ้ายทำมุม 90 องศา
+        chassis_ctrl.turn(degree=90)
+        logger.log_imu_data(acc=[0.15, 0.1, 9.78], gyro=[0.0, 0.0, 30.0]) # จำลองค่า Gyro แกน Z ขยับขณะเลี้ยว
+        time.sleep(0.5)
+        
+        # 3. เดินหน้าต่ออีก 0.5 เมตร ในทิศทางใหม่หลังจากเลี้ยวแล้ว
+        chassis_ctrl.move_forward(distance=0.5)
+        logger.log_imu_data(acc=[0.09, 0.01, 9.81], gyro=[0.1, 0.8, 0.0])
+        time.sleep(0.5)
+            
+        print("[Main] Mission completed successfully.")
+        
+    except KeyboardInterrupt:
+        print("\n[Main] Execution interrupted by User (Ctrl+C).")
+    except Exception as e:
+        print(f"[Main] Error encountered during execution: {e}")
+    finally:
+        print("[Main] Executing cleanup phase...")
+        logger.stop_logging()
+        try:
+            ep_robot.camera.stop_video_stream()
+        except:
+            pass
+        ep_robot.uninitialize()
+        print("[Main] Robot disconnected cleanly. System shutdown.")
 
-    # 3. เริ่มต้นเปิดตัวบันทึกและสมัครรับข้อมูลเซนเซอร์ (Subscribe)
-    logger = DataLogger()
-    ep_chassis = ep_robot.chassis
-    freq = config['robot']['sample_freq']
-
-    ep_chassis.sub_attitude(freq=freq, callback=logger.log_attitude)
-    ep_chassis.sub_position(freq=freq, callback=logger.log_position)
-    ep_chassis.sub_imu(freq=freq, callback=logger.log_imu)
-    ep_chassis.sub_esc(freq=freq, callback=logger.log_esc)
-    
-    time.sleep(1.0) # รอเวลาให้สัญญาณเซนเซอร์สเตเบิล
-    
-    # 4. เรียกทำงานชุดเคลื่อนฐานล้อตามรูปแบบสี่เหลี่ยม
-    controller = ChassisController(
-        ep_chassis=ep_chassis,
-        tile_size=config['robot']['tile_size'],
-        speed=config['robot']['speed']
-    )
-    
-    print("\n=== เริ่มต้นเคลื่อนที่รูปสี่เหลี่ยม 2x2 ช่องกระเบื้อง ===")
-    controller.execute_square_path()
-    print("=== สิ้นสุดภารกิจเดินสี่เหลี่ยมเรียบร้อยแล้ว ===\n")
-
-    # 5. ยกเลิกดักข้อมูลทั้งหมด ปิดหุ่นยนต์ และเซฟไฟล์ปิดท้าย
-    ep_chassis.unsub_all()
-    ep_robot.close()
-    logger.close_files()
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,27 @@
-robot:
-  conn_type: "rndis"        # โหมด Wi-Fi Direct (สลับเป็น "usb" ได้ในแลปถัดไปเพื่อวัด Latency)
-  tile_size: 0.42   # ระยะทางต่อ 1 ช่องกระเบื้อง (เมตร)
-  speed: 0.2             # ความเร็วการเคลื่อนที่ (เมตร/วินาที)
-  sample_freq: 10        # ความถี่ในการเก็บข้อมูลเซนเซอร์ (Hz)
+# config/settings.yaml
+
+# 1. Network & Connection settings
+connection:
+  mode: "ap"                   # "ap" (Wi-Fi direct) หรือ "rndis" (USB Mode)
+  robot_ip: "192.168.2.1"      
+  timeout: 10                  
+
+# 2. Robot Physical Parameters
+robot_params:
+  chassis:
+    default_speed_x: 0.5       # ความเร็วเดินหน้า-ถอยหลังเริ่มต้น (m/s)
+    default_speed_y: 0.5       # ความเร็วสไลด์ซ้าย-ขวาเริ่มต้น (m/s)
+    default_speed_z: 30        # ความเร็วในการหมุนตัวเริ่มต้น (deg/s)
+    max_speed_x: 1.5           # ขีดจำกัดความเร็วเคลื่อนที่สูงสุดเพื่อความปลอดภัย
+    max_speed_z: 60            # ขีดจำกัดความเร็วในการหมุนตัวสูงสุด (deg/s)
+  gimbal:
+    default_pitch_speed: 50    
+    default_yaw_speed: 100     
+    max_pitch_angle: 30        
+    min_pitch_angle: -20       
+
+# 3. Directories & Paths
+paths:
+  raw_data_dir: "data/raw"             
+  processed_data_dir: "data/processed" 
+  output_plots_dir: "analysis/plots"

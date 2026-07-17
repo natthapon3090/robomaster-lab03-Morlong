@@ -1,60 +1,43 @@
-import time
-import csv
+# src/logger.py
 import os
+import csv
+import time
+from datetime import datetime
 
 class DataLogger:
-    def __init__(self):
-        # สร้างโฟลเดอร์ data อัตโนมัติหากยังไม่มีอยู่
-        os.makedirs("data", exist_ok=True)
+    def __init__(self, config):
+        self.base_dir = config['paths']['raw_data_dir']
+        self.run_dir = self._create_run_folder()
+        self.file_path = None
+        self.csv_file = None
+        self.writer = None
+
+    def _create_run_folder(self):
+        if not os.path.exists(self.base_dir):
+            os.makedirs(self.base_dir, exist_ok=True)
+            
+        existing_runs = [d for d in os.listdir(self.base_dir) if d.startswith('run')]
+        run_number = len(existing_runs) + 1
+        new_run_dir = os.path.join(self.base_dir, f"run{run_number}")
+        os.makedirs(new_run_dir, exist_ok=True)
+        return new_run_dir
+
+    def start_logging(self, sensor_type="imu"):
+        date_str = datetime.now().strftime("%Y%m%d")
+        filename = f"log_{date_str}_{sensor_type}.csv"
+        self.file_path = os.path.join(self.run_dir, filename)
         
-        # เปิดไฟล์เขียนแบบ CSV ทั้งหมด 5 ไฟล์
-        self.f_att = open('data/log_attitude.csv', mode='w', newline='')
-        self.f_pos = open('data/log_position.csv', mode='w', newline='')
-        self.f_imu = open('data/log_imu.csv', mode='w', newline='')
-        self.f_esc = open('data/log_esc.csv', mode='w', newline='')
-        self.f_lat = open('data/log_latency.csv', mode='w', newline='')
-        
-        self.w_att = csv.writer(self.f_att)
-        self.w_pos = csv.writer(self.f_pos)
-        self.w_imu = csv.writer(self.f_imu)
-        self.w_esc = csv.writer(self.f_esc)
-        self.w_lat = csv.writer(self.f_lat)
-        
-        # เขียนชื่อคอลัมน์ (Headers) ของข้อมูล
-        self.w_att.writerow(['timestamp', 'yaw', 'pitch', 'roll'])
-        self.w_pos.writerow(['timestamp', 'x', 'y'])
-        self.w_imu.writerow(['timestamp', 'acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z'])
-        self.w_esc.writerow(['timestamp', 'speed_1', 'speed_2', 'speed_3', 'speed_4'])
-        self.w_lat.writerow(['timestamp', 'latency_ms'])
+        self.csv_file = open(self.file_path, mode='w', newline='', encoding='utf-8')
+        self.writer = csv.writer(self.csv_file)
+        self.writer.writerow(['timestamp', 'acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z'])
+        print(f"[Logger] Started data log file at: {self.file_path}")
 
-    # --- ฟังก์ชัน Callback สำหรับบันทึกแต่ละเซนเซอร์พร้อม Unix Timestamp ---
-    
-    def log_attitude(self, data):
-        start_time = time.perf_counter()
-        yaw, pitch, roll = data
-        timestamp = int(time.time() * 1000)
-        self.w_att.writerow([timestamp, yaw, pitch, roll])
-        
-        # คำนวณความหน่วงการรับส่งข้อมูล (Latency) สำหรับ Lab Assignment 2
-        latency = (time.perf_counter() - start_time) * 1000
-        self.w_lat.writerow([timestamp, latency])
+    def log_imu_data(self, acc, gyro):
+        if self.writer:
+            timestamp = int(time.time() * 1000)
+            self.writer.writerow([timestamp, acc[0], acc[1], acc[2], gyro[0], gyro[1], gyro[2]])
 
-    def log_position(self, data):
-        x, y, _ = data
-        self.w_pos.writerow([int(time.time() * 1000), x, y])
-
-    def log_imu(self, data):
-        acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z = data
-        self.w_imu.writerow([int(time.time() * 1000), acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z])
-
-    def log_esc(self, data):
-        speed_1, speed_2, speed_3, speed_4 = data
-        self.w_esc.writerow([int(time.time() * 1000), speed_1, speed_2, speed_3, speed_4])
-
-    def close_files(self):
-        self.f_att.close()
-        self.f_pos.close()
-        self.f_imu.close()
-        self.f_esc.close()
-        self.f_lat.close()
-        print("[สำเร็จ] บันทึกไฟล์ CSV ครบทั้ง 5 ไฟล์เรียบร้อยแล้วในโฟลเดอร์ data/")
+    def stop_logging(self):
+        if self.csv_file:
+            self.csv_file.close()
+            print(f"[Logger] Data log saved and closed safely.")
