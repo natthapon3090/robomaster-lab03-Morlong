@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Virtual environment
+.venv/
+venv/
+
+# Data files (มักมีขนาดใหญ่ ไม่ควร push ขึ้น git)
+data/raw/**/*.csv
+data/processed/**/*.csv
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Plots (สร้างใหม่ได้จาก analysis script)
+analysis/plots/*.png
+analysis/plots/*.pdf
