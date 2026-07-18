@@ -34,7 +34,15 @@ def move_square(ep_robot, config):
         )
 
         chassis.move(
-            x=distance,
+            x=distance/2,
+            y=0,
+            z=0,
+            xy_speed=speed
+        ).wait_for_completed()
+
+        time.sleep(stop_time)
+        chassis.move(
+            x=distance/2,
             y=0,
             z=0,
             xy_speed=speed
