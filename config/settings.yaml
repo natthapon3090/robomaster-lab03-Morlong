@@ -1,13 +1,9 @@
-# กำหนดโหมดการเชื่อมต่อกับหุ่นยนต์ RoboMaster
 connection:
-  mode: "ap"     # โหมดการเชื่อมต่อ: "ap" หรือ "sta"
+  mode: ap
 
-# ตั้งค่าความเร็วและระยะทางในการเคลื่อนที่ของหุ่นยนต์
-robot_settings:
-  tile_size: 0.6    # ระยะทางต่อ 1 ช่องกระเบื้อง (เมตร)
-  speed: 0.7        # ความเร็วตอนเดินหน้าตรง
-  turn_speed: 45    # ความเร็วตอนหมุนตัว/เลี้ยวขวา (องศาต่อวินาที)
-
-# โครงสร้างพาธสำหรับอ้างอิงไฟล์ข้อมูล
-paths:
-  raw_data_dir: "data/raw"
+robot:
+  move_distance: 0.70
+  move_speed: 0.7
+  turn_angle: -90
+  turn_speed: 50
+  stop_time: 0.5
