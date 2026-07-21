@@ -2,8 +2,8 @@ connection:
   mode: ap
 
 robot:
-  move_distance: 0.78
-  move_speed: 0.78
+  move_distance: 0.7
+  move_speed: 0.65
   turn_angle: -90
   turn_speed: 40
   stop_time: 0.4
